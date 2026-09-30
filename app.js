@@ -45,8 +45,8 @@ async function getPublicSpaces(){
       let features=[],images=[];
       const featureRes=await client.from('space_features').select('feature').eq('space_id',s.id).order('sort_order');
       if(!featureRes.error)features=(featureRes.data||[]).map(x=>x.feature).filter(Boolean);
-      const imageRes=await client.from('space_images').select('image_url,is_main,sort_order,created_at').eq('space_id',s.id).order('is_main',{ascending:false}).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
-      if(!imageRes.error)images=(imageRes.data||[]).sort((a,b)=>Number(Boolean(b.is_main))-Number(Boolean(a.is_main))||(a.sort_order||0)-(b.sort_order||0)||String(a.created_at||'').localeCompare(String(b.created_at||''))).map(x=>x.image_url).filter(Boolean);
+      const imageRes=await client.from('space_images').select('image_url,sort_order').eq('space_id',s.id).order('sort_order');
+      if(!imageRes.error)images=(imageRes.data||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(x=>x.image_url).filter(Boolean);
       let services=[]; const serviceRes=await client.rpc('get_public_space_services',{p_space_id:s.id}); if(!serviceRes.error)services=serviceRes.data||[]; let dayPrices={}; const dayRes=await client.rpc('get_public_space_day_prices',{p_space_id:s.id}); if(!dayRes.error)(dayRes.data||[]).forEach(x=>dayPrices[x.day_of_week]=Number(x.price||0)); let holidays={}; const y=new Date().getFullYear(); for(const hy of [y,y+1]){const hr=await client.rpc('get_public_space_holidays',{p_space_id:s.id,p_year:hy}); if(!hr.error)(hr.data||[]).forEach(x=>holidays[x.holiday_date]={name:x.name});} let normalizedSpace=normalizeSpace({...s,space_features:features.map(feature=>({feature})),space_images:images.map((image_url,i)=>({image_url,sort_order:i})),space_services:services,day_prices:dayPrices,holiday_price:s.holiday_price,holidays});
       // Salvaguarda para La Nube: mientras se termina la configuración de servicios,
       // su ficha debe reflejar la configuración confirmada en Supabase.

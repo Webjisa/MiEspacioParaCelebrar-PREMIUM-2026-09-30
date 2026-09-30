@@ -526,16 +526,110 @@
   }
 
   async function photosTool(m,s,box){
-    const r=await state.client.rpc('admin_get_space_images',{p_space_id:s.id}); if(r.error){box.innerHTML=`<p class="message error">${esc(r.error.message)}</p>`;return;}
-    box.innerHTML=`<div class="upload-box"><input id="photoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple><p>JPG, PNG o WebP. Puedes seleccionar varias imágenes.</p><button id="uploadPhotos" class="btn btn-dark">Subir fotografías</button></div><div class="photo-grid">${(r.data||[]).map((x,i)=>`<article class="photo-admin"><img src="${esc(x.image_url)}" alt="${esc(x.alt_text||s.name)}"><div><strong>${x.is_main?'Principal':'Fotografía '+(i+1)}</strong><p>${esc(x.alt_text||'Sin texto alternativo')}</p><div class="photo-actions">${!x.is_main?`<button class="btn btn-light" data-main="${x.id}">Hacer principal</button>`:''}<button class="btn btn-light" data-photo-edit="${x.id}">Editar</button><button class="btn btn-light" data-photo-delete="${x.id}" data-url="${esc(x.image_url)}">Eliminar</button></div></div></article>`).join('')||'<p class="muted">Todavía no hay fotografías.</p>'}</div><p class="admin-message"></p>`;
+    const r=await state.client.rpc('admin_get_space_images',{p_space_id:s.id});
+    if(r.error){box.innerHTML=`<p class="message error">${esc(r.error.message)}</p>`;return;}
+
+    const images=[...(r.data||[])].sort((a,b)=>Number(a.sort_order??0)-Number(b.sort_order??0));
+
+    box.innerHTML=`
+      <div class="upload-box photo-upload-box">
+        <input id="photoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+        <p>JPG, PNG o WebP. Puedes seleccionar varias imágenes.</p>
+        <button id="uploadPhotos" class="btn btn-dark" type="button">Subir fotografías</button>
+      </div>
+      <div class="photo-management-intro">
+        <strong>Gestiona las fotografías del espacio</strong>
+        <span>La fotografía marcada como <b>Principal</b> será la portada del espacio y podrá aparecer automáticamente en el carrusel de Inicio.</span>
+      </div>
+      <div class="photo-grid">
+        ${images.map((x,i)=>`
+          <article class="photo-admin ${x.is_main?'is-main':''}">
+            <div class="photo-admin-image-wrap">
+              <img src="${esc(x.image_url)}" alt="${esc(x.alt_text||s.name)}">
+              ${x.is_main?'<span class="photo-main-badge">★ Principal</span>':''}
+            </div>
+            <div class="photo-admin-body">
+              <div class="photo-admin-heading">
+                <strong>${x.is_main?'Fotografía principal':'Fotografía '+(i+1)}</strong>
+                <span class="photo-order">Orden ${Number(x.sort_order??0)}</span>
+              </div>
+              <p>${esc(x.alt_text||'Sin texto alternativo')}</p>
+              <div class="photo-actions">
+                ${!x.is_main?`<button class="btn btn-light" type="button" data-main="${x.id}">★ Hacer principal</button>`:''}
+                <button class="btn btn-light" type="button" data-photo-edit="${x.id}">✎ Editar</button>
+                <button class="btn btn-light" type="button" data-photo-up="${x.id}">↑ Subir</button>
+                <button class="btn btn-light" type="button" data-photo-down="${x.id}">↓ Bajar</button>
+                <button class="btn btn-light photo-delete-btn" type="button" data-photo-delete="${x.id}" data-url="${esc(x.image_url)}">Eliminar</button>
+              </div>
+            </div>
+          </article>`).join('')||'<p class="muted">Todavía no hay fotografías.</p>'}
+      </div>
+      <p class="admin-message" aria-live="polite"></p>`;
+
     box.querySelector('#uploadPhotos').onclick=async()=>{
-      const files=[...box.querySelector('#photoFiles').files];if(!files.length){toast(box,'Selecciona al menos una imagen.',true);return;} const msg=box.querySelector('.admin-message');msg.textContent='Subiendo…';
-      for(const file of files){if(file.size>8*1024*1024){msg.textContent=`${file.name}: supera 8 MB.`;msg.classList.add('error');continue;} const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=`${s.id}/${crypto.randomUUID()}.${ext}`;const up=await state.client.storage.from('space-images').upload(path,file,{cacheControl:'31536000',upsert:false,contentType:file.type});if(up.error){msg.textContent=up.error.message;msg.classList.add('error');continue;}const pub=state.client.storage.from('space-images').getPublicUrl(path).data.publicUrl;const row=await state.client.rpc('admin_add_space_image',{p_space_id:s.id,p_image_url:pub,p_alt_text:s.name,p_is_main:false,p_sort_order:999});if(row.error){await state.client.storage.from('space-images').remove([path]);msg.textContent=row.error.message;msg.classList.add('error');break;}}
-      msg.textContent='Fotografías procesadas.';await renderTool(m,s,'photos');
+      const files=[...box.querySelector('#photoFiles').files];
+      if(!files.length){toast(box,'Selecciona al menos una imagen.',true);return;}
+      const msg=box.querySelector('.admin-message');
+      msg.textContent='Subiendo…';
+      msg.classList.remove('error');
+
+      for(const file of files){
+        if(file.size>8*1024*1024){
+          msg.textContent=`${file.name}: supera 8 MB.`;
+          msg.classList.add('error');
+          continue;
+        }
+        const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+        const path=`${s.id}/${crypto.randomUUID()}.${ext}`;
+        const up=await state.client.storage.from('space-images').upload(path,file,{cacheControl:'31536000',upsert:false,contentType:file.type});
+        if(up.error){
+          msg.textContent=up.error.message;
+          msg.classList.add('error');
+          continue;
+        }
+        const pub=state.client.storage.from('space-images').getPublicUrl(path).data.publicUrl;
+        const row=await state.client.rpc('admin_add_space_image',{p_space_id:s.id,p_image_url:pub,p_alt_text:s.name,p_is_main:false,p_sort_order:999});
+        if(row.error){
+          await state.client.storage.from('space-images').remove([path]);
+          msg.textContent=row.error.message;
+          msg.classList.add('error');
+          break;
+        }
+      }
+      msg.textContent=msg.classList.contains('error')?'Fotografías procesadas con incidencias.':'Fotografías procesadas correctamente.';
+      await renderTool(m,s,'photos');
     };
-    box.querySelectorAll('[data-main]').forEach(b=>b.onclick=async()=>{const img=(r.data||[]).find(x=>x.id===b.dataset.main);if(!img)return;const u=await state.client.rpc('admin_update_space_image',{p_image_id:img.id,p_image_url:img.image_url,p_alt_text:img.alt_text||s.name,p_is_main:true,p_sort_order:img.sort_order||0});if(u.error){alert(u.error.message);return;}await renderTool(m,s,'photos');});
-    box.querySelectorAll('[data-photo-edit]').forEach(b=>b.onclick=()=>editPhoto(m,s,(r.data||[]).find(x=>x.id===b.dataset.photoEdit)));
-    box.querySelectorAll('[data-photo-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Eliminar esta fotografía?'))return;const del=await state.client.rpc('admin_delete_space_image',{p_image_id:b.dataset.photoDelete});if(del.error){alert(del.error.message);return;}await removeStorageUrl(b.dataset.url);await renderTool(m,s,'photos');});
+
+    box.querySelectorAll('[data-main]').forEach(b=>b.onclick=async()=>{
+      const img=images.find(x=>x.id===b.dataset.main);if(!img)return;
+      const u=await state.client.rpc('admin_update_space_image',{
+        p_image_id:img.id,p_image_url:img.image_url,p_alt_text:img.alt_text||s.name,p_is_main:true,p_sort_order:img.sort_order??0
+      });
+      if(u.error){alert(u.error.message);return;}
+      await renderTool(m,s,'photos');
+    });
+
+    const movePhoto=async(id,direction)=>{
+      const index=images.findIndex(x=>x.id===id);
+      const otherIndex=direction==='up'?index-1:index+1;
+      if(index<0||otherIndex<0||otherIndex>=images.length)return;
+      const a=images[index],b=images[otherIndex];
+      const ar=await state.client.rpc('admin_update_space_image',{p_image_id:a.id,p_image_url:a.image_url,p_alt_text:a.alt_text||s.name,p_is_main:!!a.is_main,p_sort_order:Number(b.sort_order??otherIndex)});
+      if(ar.error){alert(ar.error.message);return;}
+      const br=await state.client.rpc('admin_update_space_image',{p_image_id:b.id,p_image_url:b.image_url,p_alt_text:b.alt_text||s.name,p_is_main:!!b.is_main,p_sort_order:Number(a.sort_order??index)});
+      if(br.error){alert(br.error.message);return;}
+      await renderTool(m,s,'photos');
+    };
+    box.querySelectorAll('[data-photo-up]').forEach(b=>b.onclick=()=>movePhoto(b.dataset.photoUp,'up'));
+    box.querySelectorAll('[data-photo-down]').forEach(b=>b.onclick=()=>movePhoto(b.dataset.photoDown,'down'));
+    box.querySelectorAll('[data-photo-edit]').forEach(b=>b.onclick=()=>editPhoto(m,s,images.find(x=>x.id===b.dataset.photoEdit)));
+    box.querySelectorAll('[data-photo-delete]').forEach(b=>b.onclick=async()=>{
+      if(!confirm('¿Eliminar esta fotografía?'))return;
+      const del=await state.client.rpc('admin_delete_space_image',{p_image_id:b.dataset.photoDelete});
+      if(del.error){alert(del.error.message);return;}
+      await removeStorageUrl(b.dataset.url);
+      await renderTool(m,s,'photos');
+    });
   }
 
   async function removeStorageUrl(url){try{const marker='/storage/v1/object/public/space-images/';const i=url.indexOf(marker);if(i<0)return;const path=decodeURIComponent(url.slice(i+marker.length));await state.client.storage.from('space-images').remove([path]);}catch(e){console.warn(e);}}
