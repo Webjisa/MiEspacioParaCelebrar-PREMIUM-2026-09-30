@@ -1,0 +1,19 @@
+name: Procesar cola de emails
+
+on:
+  schedule:
+    - cron: '50 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Procesar email_queue
+        env:
+          SUPABASE_EMAIL_WORKER_URL: ${{ secrets.SUPABASE_EMAIL_WORKER_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$SUPABASE_EMAIL_WORKER_URL"
+          test -n "$CRON_SECRET"
+          curl --fail-with-body -X POST "$SUPABASE_EMAIL_WORKER_URL"             -H "x-cron-secret: $CRON_SECRET"             -H "Content-Type: application/json"             --data '{}'

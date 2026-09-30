@@ -1,0 +1,4 @@
+-- HISTÓRICO / COMPATIBILIDAD
+-- La versión vigente de cálculo económico está en:
+-- supabase/MIGRACION-PRECIOS-DIARIOS-Y-PAQUETES.sql
+-- No ejecutar este archivo antiguo: utilizaba lunes-jueves agrupados.
