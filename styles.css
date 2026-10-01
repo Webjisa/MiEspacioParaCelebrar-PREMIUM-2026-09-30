@@ -773,3 +773,30 @@ body:has(#privateArea) .site-header .nav>nav a[hidden]{display:none!important}
   padding: 0 !important;
   border-radius: 0 !important;
 }
+
+
+/* V8 · Estados de botones oscuros: mismo lenguaje que el panel de administración */
+.btn-dark {
+  background:#111512 !important;
+  color:#aeb6af !important;
+  border-color:#111512 !important;
+}
+.btn-dark:hover {
+  background:#1d241f !important;
+  color:#fff !important;
+  border-color:#1d241f !important;
+}
+.btn-dark.is-selected,
+.btn-dark[aria-pressed="true"],
+.btn-dark[aria-current="page"],
+.btn-dark:active {
+  background:#46534b !important;
+  color:#fff !important;
+  border-color:#46534b !important;
+}
+/* V8 · Logo oficial siempre transparente */
+.brand-logo,.brand-hero-logo,.footer-logo,.pm-footer-logo,.admin-sidebar-brand img {
+  background:transparent !important;
+  padding:0 !important;
+  border-radius:0 !important;
+}

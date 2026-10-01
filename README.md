@@ -53,3 +53,14 @@ No guardar secretos en el frontend. La service role key de Supabase y la API key
 ## Publicación
 
 El proyecto está preparado para GitHub Pages. No se incluye ninguna afirmación de que la versión esté ya desplegada: primero hay que sustituir el contenido del repositorio y completar la configuración de Supabase/Resend siguiendo `DEPLOY-FINAL.md`.
+
+
+## PREMIUM V8 · 2026-10-01
+- Aforo máximo opcional y dinámico en el selector de fechas.
+- Campo de administración para aforo máximo del espacio.
+- La migración estructurada está en `supabase/PREMIUM-V8-AFORO-MAXIMO-2026-10-01.sql` y NO se ha ejecutado.
+- Eliminado el sello circular del logotipo sobre las fotografías de portada.
+- Eliminadas las páginas y funcionalidades públicas de Favoritos y Comparar.
+- Eliminadas las categorías de celebración y el filtro de precio de la experiencia pública.
+- Mantiene búsqueda pública por nombre/localidad y disponibilidad por fechas.
+- Botones oscuros con estados normal/hover/seleccionado coherentes con el panel de administración.

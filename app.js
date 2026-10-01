@@ -37,7 +37,14 @@ async function getPublicSpaces(){
   try{
     // Consulta principal separada de las relaciones para que un fallo de imágenes/features
     // no convierta el espacio en un falso ID de prueba.
-    const {data,error}=await client.from('spaces').select('id,name,city,province,latitude,longitude,description,weekday_price,friday_price,saturday_price,sunday_price,deposit,opening_time,closing_time,cleaning_available,cleaning_price,cancellation_policy,conditions_text,holiday_price,active,admin_enabled,owner_active,active_from,active_until').eq('active',true).eq('admin_enabled',true).eq('owner_active',true).order('name');
+    const publicSpaceFields='id,name,city,province,latitude,longitude,description,weekday_price,friday_price,saturday_price,sunday_price,deposit,opening_time,closing_time,cleaning_available,cleaning_price,cancellation_policy,conditions_text,holiday_price,capacity,active,admin_enabled,owner_active,active_from,active_until';
+    const legacySpaceFields='id,name,city,province,latitude,longitude,description,weekday_price,friday_price,saturday_price,sunday_price,deposit,opening_time,closing_time,cleaning_available,cleaning_price,cancellation_policy,conditions_text,holiday_price,active,admin_enabled,owner_active,active_from,active_until';
+    let result=await client.from('spaces').select(publicSpaceFields).eq('active',true).eq('admin_enabled',true).eq('owner_active',true).order('name');
+    if(result.error){
+      // Compatibilidad con el esquema anterior mientras la migración V8 no se haya ejecutado.
+      result=await client.from('spaces').select(legacySpaceFields).eq('active',true).eq('admin_enabled',true).eq('owner_active',true).order('name');
+    }
+    const {data,error}=result;
     if(error)throw error;
     const active=(data||[]).filter(s=>isActive({active:s.active,activeFrom:s.active_from,activeUntil:s.active_until}));
     const normalized=[];

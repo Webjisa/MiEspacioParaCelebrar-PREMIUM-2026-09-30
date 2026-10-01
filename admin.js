@@ -448,7 +448,7 @@
   }
 
   function renderSpaces(root){
-    root.innerHTML=header('ESPACIOS','Gestionar espacios',`<button id="newSpace" class="btn btn-dark">+ Añadir espacio</button>`)+`<div class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Espacio</th><th>Propietario</th><th>Estado</th><th>Periodo</th><th>Precios</th><th></th></tr></thead><tbody>${state.spaces.length?state.spaces.map(s=>spaceRow(s)).join(''):`<tr><td colspan="6" class="muted">No hay espacios.</td></tr>`}</tbody></table></div></div><p class="admin-message" aria-live="polite"></p>`;
+    root.innerHTML=header('ESPACIOS','Gestionar espacios',`<button id="newSpace" class="btn btn-dark">+ Añadir espacio</button>`)+`<div class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Espacio</th><th>Propietario</th><th>Aforo</th><th>Estado</th><th>Periodo</th><th>Precios</th><th></th></tr></thead><tbody>${state.spaces.length?state.spaces.map(s=>spaceRow(s)).join(''):`<tr><td colspan="7" class="muted">No hay espacios.</td></tr>`}</tbody></table></div></div><p class="admin-message" aria-live="polite"></p>`;
     root.querySelector('#newSpace').onclick=()=>spaceModal(null);
     root.querySelectorAll('[data-space-edit]').forEach(b=>b.onclick=()=>spaceModal(state.spaces.find(s=>s.id===b.dataset.spaceEdit)));
     root.querySelectorAll('[data-space-toggle]').forEach(b=>b.onclick=()=>toggleSpace(b.dataset.spaceToggle,b.dataset.active==='true'));
@@ -458,7 +458,7 @@
   function spaceRow(s){
     const owner=state.owners.find(o=>o.id===s.owner_id);
     const period=s.active_until?`${date(s.active_from)} → ${date(s.active_until)}`:`Desde ${date(s.active_from)}`;
-    return `<tr><td><strong>${esc(s.name)}</strong><span class="table-sub">${esc(s.city||'')} · ${esc(s.province||'')}</span></td><td>${owner?esc(`${owner.first_name||''} ${owner.last_name||''}`.trim()||owner.email):'—'}</td><td><span class="status ${s.active?'status-confirmed':'status-off'}">${s.active?'Activo':'Inactivo'}</span></td><td>${period}</td><td>${money(s.weekday_price)} / ${money(s.friday_price)}</td><td class="table-actions"><button class="btn btn-light" data-space-edit="${s.id}">Editar</button><button class="btn btn-light" data-space-tools="${s.id}">Gestionar</button><button class="btn btn-light" data-space-toggle="${s.id}" data-active="${s.active}">${s.active?'Desactivar':'Activar'}</button></td></tr>`;
+    return `<tr><td><strong>${esc(s.name)}</strong><span class="table-sub">${esc(s.city||'')} · ${esc(s.province||'')}</span></td><td>${owner?esc(`${owner.first_name||''} ${owner.last_name||''}`.trim()||owner.email):'—'}</td><td>${s.capacity?`${esc(s.capacity)} personas`:'—'}</td><td><span class="status ${s.active?'status-confirmed':'status-off'}">${s.active?'Activo':'Inactivo'}</span></td><td>${period}</td><td>${money(s.weekday_price)} / ${money(s.friday_price)}</td><td class="table-actions"><button class="btn btn-light" data-space-edit="${s.id}">Editar</button><button class="btn btn-light" data-space-tools="${s.id}">Gestionar</button><button class="btn btn-light" data-space-toggle="${s.id}" data-active="${s.active}">${s.active?'Desactivar':'Activar'}</button></td></tr>`;
   }
 
   async function spaceModal(s){
@@ -477,6 +477,7 @@
       <label>Hora de apertura<input id="opening" type="time" value="${esc(s?.opening_time||'11:00')}" ></label>
       <label>Hora de cierre<input id="closing" type="time" value="${esc(s?.closing_time||'23:00')}" ></label>
       <label>Fianza (€)<input id="deposit" type="number" min="0" step="0.01" value="${s?.deposit??''}"></label>
+      <label>Aforo máximo (personas)<input id="capacity" type="number" min="1" step="1" value="${s?.capacity??''}" placeholder="Ej. 80"><small class="field-help">Máximo de personas que admite el espacio. Se utiliza en el filtro de disponibilidad.</small></label>
       <label>Inicio de actividad<input id="from" type="date" value="${esc(s?.active_from||'')}" ></label>
       <label>Fin de actividad<input id="until" type="date" value="${esc(s?.active_until||'')}" ></label>
       <label>Latitud<input id="lat" type="number" step="0.000001" value="${s?.latitude??''}"></label>
@@ -495,6 +496,34 @@
       const r=edit?await c.rpc('admin_update_space',{p_space_id:s.id,...args}):await c.rpc('admin_create_space',args);
       if(r.error){msg.textContent=r.error.message;msg.classList.add('error');return;}
       const spaceId=edit?s.id:r.data;
+      const capacityRaw=val(m,'#capacity');
+      const capacity=capacityRaw===''?null:Number(capacityRaw);
+      const capRpc=await c.rpc('admin_set_space_capacity',{p_space_id:spaceId,p_capacity:capacity});
+      const fr=await c.rpc('admin_get_space_features',{p_space_id:spaceId});
+      if(fr.error){msg.textContent=fr.error.message;msg.classList.add('error');return;}
+      const canonical=(fr.data||[]).find(x=>/^(aforo máximo|aforo maximo)\s*:/i.test(String(x.feature||'')));
+      const label=capacity?`Aforo máximo: ${capacity} personas`:'';
+      if(!capRpc.error){
+        // La columna estructurada es la fuente oficial. Eliminamos cualquier
+        // valor técnico antiguo que pudiera quedar entre las características.
+        if(canonical){
+          const dr=await c.rpc('admin_delete_space_feature',{p_feature_id:canonical.id});
+          if(dr.error){msg.textContent=dr.error.message;msg.classList.add('error');return;}
+        }
+      }else{
+        // Compatibilidad: si la migración estructurada aún no se ha ejecutado,
+        // guardamos temporalmente el aforo como característica técnica.
+        if(canonical && label){
+          const ur=await c.rpc('admin_update_space_feature',{p_feature_id:canonical.id,p_feature:label,p_sort_order:canonical.sort_order??0});
+          if(ur.error){msg.textContent=ur.error.message;msg.classList.add('error');return;}
+        }else if(canonical && !label){
+          const dr=await c.rpc('admin_delete_space_feature',{p_feature_id:canonical.id});
+          if(dr.error){msg.textContent=dr.error.message;msg.classList.add('error');return;}
+        }else if(label){
+          const ar=await c.rpc('admin_add_space_feature',{p_space_id:spaceId,p_feature:label,p_sort_order:0});
+          if(ar.error){msg.textContent=ar.error.message;msg.classList.add('error');return;}
+        }
+      }
       const dp=await c.rpc('admin_save_space_day_prices',{p_space_id:spaceId,p_monday:num(m,'#monday')??0,p_tuesday:num(m,'#tuesday')??0,p_wednesday:num(m,'#wednesday')??0,p_thursday:num(m,'#thursday')??0,p_friday:num(m,'#friday')??0,p_saturday:num(m,'#saturday')??0,p_sunday:num(m,'#sunday')??0});
       if(dp.error){msg.textContent=dp.error.message;msg.classList.add('error');return;}
       const hp=await c.rpc('admin_save_space_holiday_price',{p_space_id:spaceId,p_holiday_price:num(m,'#holiday')??0});
@@ -816,7 +845,8 @@
   }
   async function featuresTool(m,s,box){
     const r=await state.client.rpc('admin_get_space_features',{p_space_id:s.id});if(r.error){box.innerHTML=`<p class="message error">${esc(r.error.message)}</p>`;return;}
-    box.innerHTML=`<div class="feature-add"><input id="newFeature" placeholder="Nueva característica"><button id="addFeature" class="btn btn-dark">Añadir</button></div><div class="feature-admin-list">${(r.data||[]).map((x,i)=>`<div><span>${esc(x.feature)}</span><span><button class="btn btn-light" data-feature-edit="${x.id}">Editar</button><button class="btn btn-light" data-feature-delete="${x.id}">Eliminar</button></span></div>`).join('')||'<p class="muted">No hay características.</p>'}</div><p class="admin-message"></p>`;
+    const visibleFeatures=(r.data||[]).filter(x=>!/^aforo\s*m[aá]ximo\s*:/i.test(String(x.feature||'')));
+    box.innerHTML=`<div class="feature-add"><input id="newFeature" placeholder="Nueva característica"><button id="addFeature" class="btn btn-dark">Añadir</button></div><p class="micro">El aforo máximo se gestiona en el campo específico del espacio y no como una característica.</p><div class="feature-admin-list">${visibleFeatures.map((x,i)=>`<div><span>${esc(x.feature)}</span><span><button class="btn btn-light" data-feature-edit="${x.id}">Editar</button><button class="btn btn-light" data-feature-delete="${x.id}">Eliminar</button></span></div>`).join('')||'<p class="muted">No hay características.</p>'}</div><p class="admin-message"></p>`;
     box.querySelector('#addFeature').onclick=async()=>{const feature=val(box,'#newFeature');if(!feature)return;const q=await state.client.rpc('admin_add_space_feature',{p_space_id:s.id,p_feature:feature,p_sort_order:(r.data||[]).length});if(q.error){toast(box,q.error.message,true);return;}await renderTool(m,s,'features');};
     box.querySelectorAll('[data-feature-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Eliminar esta característica?'))return;const q=await state.client.rpc('admin_delete_space_feature',{p_feature_id:b.dataset.featureDelete});if(q.error){alert(q.error.message);return;}await renderTool(m,s,'features');});
     box.querySelectorAll('[data-feature-edit]').forEach(b=>b.onclick=()=>{const x=(r.data||[]).find(y=>y.id===b.dataset.featureEdit);const n=prompt('Característica',x.feature);if(n===null)return;state.client.rpc('admin_update_space_feature',{p_feature_id:x.id,p_feature:n.trim(),p_sort_order:x.sort_order}).then(q=>q.error?alert(q.error.message):renderTool(m,s,'features'));});
