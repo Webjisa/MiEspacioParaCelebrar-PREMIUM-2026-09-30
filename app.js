@@ -10,7 +10,7 @@ const LA_NUBE_ID = '340c371d-e09b-4a59-bfaa-343d7509a35c';
 const FALLBACK_SPACES = [{
   id:LA_NUBE_ID, name:'La Nube', city:'Lucena', province:'Córdoba', address:'', latitude:37.417400, longitude:-4.485511,
   image:'assets/7c24953f-0f92-43e4-9c18-c534940cba2e.jpg',
-  description:'Espacio privado para cumpleaños, reuniones familiares y celebraciones.',
+  description:'Espacio privado para celebrar, reunirse y disfrutar.',
   priceWeekday:120, priceFriday:150, priceSaturday:150, priceSunday:150,
   deposit:50, hours:'11:00–23:00 / 00:00',
   features:['80 sillas','14 mesas','Cocina equipada','Aseos adaptados','Climatización independiente','Monitor/a infantil 3 h','Pista de fútbol','Parque infantil','Cama elástica'],
