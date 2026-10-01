@@ -340,7 +340,7 @@
     }
     root.innerHTML=`<div class="admin-shell">
       <aside class="admin-sidebar">
-        <div class="admin-sidebar-brand"><img src="assets/logo-miespacio-v12.png" alt="MiEspacioParaCelebrar"><span>Administración</span></div>
+        <div class="admin-sidebar-brand"><img src="assets/logo-miespacio-oficial.png" alt="MiEspacioParaCelebrar"><span>Administración</span></div>
         <nav class="admin-side-nav">
           <button data-view="dashboard" class="active">Inicio</button>
           <button data-view="spaces">Espacios</button>

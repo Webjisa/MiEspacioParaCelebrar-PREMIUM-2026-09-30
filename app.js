@@ -69,7 +69,7 @@ function normalizeSpace(s){
   return {id:s.id,name:s.name,city:s.city,province:s.province,address:s.address||'',latitude:s.latitude,longitude:s.longitude,image:images[0]||FALLBACK_SPACES[0].image,gallery:images.slice(1),description:s.description||'',priceWeekday:s.weekday_price,priceTuesday:s.tuesday_price,priceWednesday:s.wednesday_price,priceThursday:s.thursday_price,priceFriday:s.friday_price,priceSaturday:s.saturday_price,priceSunday:s.sunday_price,dayPrices:s.day_prices||{},holidayPrice:Number(s.holiday_price||0),holidays:s.holidays||{},deposit:s.deposit,hours:formatHours(s.opening_time,s.closing_time),features:[...(s.space_features||[]).map(x=>x.feature)].filter(Boolean).sort((a,b)=>String(a).localeCompare(String(b),'es',{sensitivity:'base'})),services:[...(s.space_services||[])].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'})),cleaningAvailable:!!s.cleaning_available,cleaningPrice:s.cleaning_price||0,cancellationPolicy:s.cancellation_policy||'',conditions:s.conditions_text||s.cancellation_policy||'',active:s.active,adminEnabled:s.admin_enabled!==false,ownerActive:s.owner_active!==false,activeFrom:s.active_from,activeUntil:s.active_until};
 }
 function formatHours(open,close){return open&&close?`${String(open).slice(0,5)}–${String(close).slice(0,5)}`:'Consultar horario';}
-function footer(){return `<footer><div class="container footer-inner"><div class="footer-brand-block"><div class="footer-brand"><img class="footer-logo" src="assets/logo-miespacio-principal.png" alt="MiEspacio Para Celebrar"><strong>MiEspacioParaCelebrar</strong></div><p>Admin: <a href="mailto:${ADMIN_EMAIL}">${ADMIN_EMAIL}</a></p></div></div></footer>`;}
+function footer(){return `<footer><div class="container footer-inner"><div class="footer-brand-block"><div class="footer-brand"><img class="footer-logo" src="assets/logo-miespacio-oficial.png" alt="MiEspacio Para Celebrar"><strong>MiEspacioParaCelebrar</strong></div><p>Admin: <a href="mailto:${ADMIN_EMAIL}">${ADMIN_EMAIL}</a></p></div></div></footer>`;}
 async function geocodeSpace(s){
   if(Number.isFinite(Number(s.latitude))&&Number.isFinite(Number(s.longitude)))return s;
   const address=[s.address,s.city,s.province,'España'].filter(Boolean).join(', ');if(!s.address)return s;
@@ -83,7 +83,7 @@ async function initMap(id,spaces,single=false){
   const points=resolved.filter(s=>Number.isFinite(Number(s.latitude))&&Number.isFinite(Number(s.longitude)));
   if(!points.length){el.innerHTML='<div class="map-empty">La ubicación exacta todavía no está configurada. El administrador puede introducir la dirección y localizar el espacio desde su área privada.</div>';return;}
   const map=L.map(el,{scrollWheelZoom:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);const bounds=[];
-  points.forEach(s=>{const p=[Number(s.latitude),Number(s.longitude)];bounds.push(p);L.marker(p).addTo(map).bindPopup(`<strong>${esc(s.name)}</strong><br>${esc(s.city)}${single?'':' · '+esc(s.province)}${single?'':'<br><a href="espacio.html?id='+encodeURIComponent(s.id)+'">Ver espacio</a>'}`);});
+  points.forEach(s=>{const p=[Number(s.latitude),Number(s.longitude)];bounds.push(p);const destination=encodeURIComponent(`${s.latitude},${s.longitude}`);const publicLink=single?'':`<br><a href="espacio.html?id=${encodeURIComponent(s.id)}">Ver espacio</a>`;const routes=`<div class="map-popup-actions"><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${destination}">Cómo llegar</a><a target="_blank" rel="noopener" href="https://maps.apple.com/?daddr=${destination}">Apple Maps</a></div>`;L.marker(p).addTo(map).bindPopup(`<strong>${esc(s.name)}</strong><br>${esc(s.city)}${single?'':' · '+esc(s.province)}${publicLink}${routes}`);});
   if(single)map.setView(bounds[0],17);else map.fitBounds(bounds,{padding:[35,35],maxZoom:16});setTimeout(()=>map.invalidateSize(),150);
 }
 
@@ -257,12 +257,25 @@ function openBookingCalendar(target,state){
   state.open=true;
   if(targetWrap) targetWrap.insertAdjacentElement('afterend',cal);
   cal.hidden=false;
+  const card=targetWrap?.closest('.booking-card');
+  if(card&&targetWrap){
+    const cardRect=card.getBoundingClientRect();
+    const wrapRect=targetWrap.getBoundingClientRect();
+    const left=Math.max(0,Math.min(wrapRect.left-cardRect.left,card.clientWidth-390));
+    const top=wrapRect.bottom-cardRect.top+8;
+    card.style.position='relative';
+    cal.style.position='absolute';
+    cal.style.left=`${left}px`;
+    cal.style.top=`${top}px`;
+    cal.style.width='min(370px, calc(100% - 20px))';
+    cal.style.margin='0';
+  }
   document.querySelectorAll('.booking-date-input').forEach(el=>el.setAttribute('aria-expanded',el.id===target?'true':'false'));
   renderBookingCalendar(state);
 }
 function closeBookingCalendar(){
   const cal=document.querySelector('#bookingCalendar');
-  if(cal)cal.hidden=true;
+  if(cal){cal.hidden=true;cal.style.position='';cal.style.left='';cal.style.top='';cal.style.width='';cal.style.margin='';}
   document.querySelectorAll('.booking-date-input').forEach(el=>el.setAttribute('aria-expanded','false'));
   if(window.__bookingCalendarState)window.__bookingCalendarState.open=false;
 }

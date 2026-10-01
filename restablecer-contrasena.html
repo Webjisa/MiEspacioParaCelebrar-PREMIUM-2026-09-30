@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="styles.css?v=20260928-2">
 <script src="supabase-config.js?v=final"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-</head>
+<link rel="stylesheet" href="premium-master.css?v=20261001-V2"></head>
 <body>
-<header class="site-header"><div class="container nav"><a class="brand" href="index.html" aria-label="MiEspacioParaCelebrar"><img class="brand-logo" src="assets/logo-miespacio-v12.png" alt="MiEspacio Para Celebrar"></a><nav><a href="espacios.html">Espacios</a><a href="como-funciona.html">Cómo funciona</a><a href="disponibilidad.html">Consultar disponibilidad</a><a href="acceso.html">Área privada</a></nav></div></header>
+<header class="site-header"><div class="container nav"><a class="brand" href="index.html" aria-label="MiEspacioParaCelebrar"><img class="brand-logo" src="assets/logo-miespacio-oficial.png" alt="MiEspacio Para Celebrar"></a><nav><a href="espacios.html">Espacios</a><a href="como-funciona.html">Cómo funciona</a><a href="disponibilidad.html">Consultar disponibilidad</a><a href="acceso.html">Área privada</a></nav></div></header>
 <main>
 <section class="page-intro"><div class="container"><p class="eyebrow">ÁREA PRIVADA</p><h1>Restablecer contraseña</h1><p>Solicita un enlace para recuperar el acceso o establece una nueva contraseña si ya has abierto el enlace.</p></div></section>
 <section class="section"><div class="container login-wrap">
@@ -17,7 +17,7 @@
 <form id="passwordForm" class="booking-card login-card" style="display:none"><label for="newPassword">Nueva contraseña</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" required><label for="newPassword2">Repite la contraseña</label><input id="newPassword2" type="password" minlength="6" autocomplete="new-password" required><button class="btn btn-dark full" type="submit">Guardar contraseña</button><p id="passwordMessage" class="message" aria-live="polite"></p></form>
 </div></section>
 </main>
-<footer><div class="container footer-inner"><div class="footer-brand-block"><div class="footer-brand"><img class="footer-logo" src="assets/logo-miespacio-principal.png" alt="MiEspacio Para Celebrar"><strong>MiEspacioParaCelebrar</strong></div><p>Admin: <a href="mailto:miespacioparacelebrar@gmail.com">miespacioparacelebrar@gmail.com</a></p></div><div class="legal-footer-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Privacidad</a><a href="cookies.html">Cookies</a><a href="condiciones.html">Condiciones</a></div></div></footer>
+<footer><div class="container footer-inner"><div class="footer-brand-block"><div class="footer-brand"><img class="footer-logo" src="assets/logo-miespacio-oficial.png" alt="MiEspacio Para Celebrar"><strong>MiEspacioParaCelebrar</strong></div><p>Admin: <a href="mailto:miespacioparacelebrar@gmail.com">miespacioparacelebrar@gmail.com</a></p></div><div class="legal-footer-links"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Privacidad</a><a href="cookies.html">Cookies</a><a href="condiciones.html">Condiciones</a></div></div></footer>
 <script>
 (async()=>{
  const c=window.supabase.createClient('https://hvuseljtqdgekotrsiwd.supabase.co',window.MIESPACIO_SUPABASE_ANON_KEY);
@@ -28,5 +28,5 @@
  pass.addEventListener('submit',async e=>{e.preventDefault();const msg=document.querySelector('#passwordMessage');const p=document.querySelector('#newPassword').value,p2=document.querySelector('#newPassword2').value;msg.classList.remove('error');if(p.length<6){msg.textContent='La contraseña debe tener al menos 6 caracteres.';msg.classList.add('error');return;}if(p!==p2){msg.textContent='Las contraseñas no coinciden.';msg.classList.add('error');return;}msg.textContent='Guardando…';const {error}=await c.auth.updateUser({password:p});if(error){msg.textContent=error.message;msg.classList.add('error');return;}msg.textContent='Contraseña actualizada. Accediendo…';setTimeout(()=>location.href='area-privada.html',500);});
 })();
 </script>
-</body>
+<script src="premium-master.js?v=20261001-V2"></script></body>
 </html>
