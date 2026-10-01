@@ -143,3 +143,12 @@ body.pm-app main{min-height:42vh}
 
 /* V6 — filtros sin categorías ni precio */
 .pm-filter-grid{grid-template-columns:minmax(0,1fr) auto!important;align-items:end!important;gap:14px!important}.pm-filter-grid label{min-width:0!important}.pm-filter-grid label input{width:100%!important;box-sizing:border-box!important}.pm-filter-grid .pm-btn{margin-top:18px!important;white-space:nowrap!important}@media(max-width:700px){.pm-filter-grid{grid-template-columns:1fr!important}.pm-filter-grid .pm-btn{width:100%!important;margin-top:0!important}}
+
+/* PREMIUM V7 — filtro de aforo opcional y dinámico */
+.pm-date-field small em{font-style:normal;font-weight:600;color:#8b8f89;font-size:9px;letter-spacing:0}
+.pm-people-popover{width:300px}
+.pm-people-help{display:block;margin:0 0 12px;color:#747a73;font-size:10px;line-height:1.45}
+.pm-people-options{grid-template-columns:repeat(3,1fr)}
+.pm-people-options button.pm-people-clear{grid-column:1/-1;background:#f1f0e9}
+.pm-people-empty{display:block;margin-top:12px;color:#8a8e88;font-size:10px;line-height:1.4}
+@media(max-width:700px){.pm-people-popover{left:0;right:auto;width:min(300px,calc(100vw - 40px))}}

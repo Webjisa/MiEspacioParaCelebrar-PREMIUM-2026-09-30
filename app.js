@@ -15,7 +15,7 @@ const FALLBACK_SPACES = [{
   deposit:50, hours:'11:00–23:00 / 00:00',
   features:['80 sillas','14 mesas','Cocina equipada','Aseos adaptados','Climatización independiente','Monitor/a infantil 3 h','Pista de fútbol','Parque infantil','Cama elástica'],
   gallery:['assets/44728f3e-b83b-415f-918a-0e77a90f1819.jpg','assets/78462fe7-2189-4361-8f27-d57f847d9b02.jpg','assets/9801f99c-b3cc-4bf1-a330-c8ba9e7b0564.jpg','assets/1cc39359-35d7-44a7-937c-df9c444bcf6c.jpg','assets/74dd0b0f-06b9-4ed7-8be5-b277926c49a9.jpg'],
-  cleaningAvailable:true, cleaningPrice:50, cancellationPolicy:'', active:true, activeFrom:'2026-09-25', activeUntil:'2027-12-31'
+  cleaningAvailable:true, cleaningPrice:50, capacity:80, cancellationPolicy:'', active:true, activeFrom:'2026-09-25', activeUntil:'2027-12-31'
 }];
 
 const euro=n=>new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(Number(n||0));
@@ -64,11 +64,26 @@ async function getPublicSpaces(){
     return FALLBACK_SPACES.filter(isActive);
   }
 }
+function extractCapacity(features){
+  const list=(features||[]).map(x=>typeof x==='string'?x:x?.feature).filter(Boolean);
+  for(const raw of list){
+    const text=String(raw).trim();
+    const m=text.match(/(?:hasta\s*)?(\d{1,4})\s*(?:personas?|comensales?|plazas?)/i);
+    if(m)return Number(m[1]);
+    const chairs=text.match(/(?:hasta\s*)?(\d{1,4})\s*sillas?/i);
+    if(chairs)return Number(chairs[1]);
+    const aforo=text.match(/aforo(?:\s*m[aá]ximo)?\s*[:\-]?\s*(\d{1,4})/i);
+    if(aforo)return Number(aforo[1]);
+  }
+  return null;
+}
 function normalizeSpace(s){
   const imageRows=(s.space_images||[]).filter(x=>x&&x.image_url).sort((a,b)=>(Number(b.is_main===true)-Number(a.is_main===true))||((a.sort_order??0)-(b.sort_order??0)));
   const images=imageRows.map(x=>x.image_url).filter(Boolean);
   const mainImage=(imageRows.find(x=>x.is_main===true)?.image_url)||images[0]||FALLBACK_SPACES[0].image;
-  return {id:s.id,name:s.name,city:s.city,province:s.province,address:s.address||'',latitude:s.latitude,longitude:s.longitude,image:mainImage,gallery:images.filter((url,i)=>url!==mainImage||i!==0),description:s.description||'',priceWeekday:s.weekday_price,priceTuesday:s.tuesday_price,priceWednesday:s.wednesday_price,priceThursday:s.thursday_price,priceFriday:s.friday_price,priceSaturday:s.saturday_price,priceSunday:s.sunday_price,dayPrices:s.day_prices||{},holidayPrice:Number(s.holiday_price||0),holidays:s.holidays||{},deposit:s.deposit,hours:formatHours(s.opening_time,s.closing_time),features:[...(s.space_features||[]).map(x=>x.feature)].filter(Boolean).sort((a,b)=>String(a).localeCompare(String(b),'es',{sensitivity:'base'})),services:[...(s.space_services||[])].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'})),cleaningAvailable:!!s.cleaning_available,cleaningPrice:s.cleaning_price||0,cancellationPolicy:s.cancellation_policy||'',conditions:s.conditions_text||s.cancellation_policy||'',active:s.active,adminEnabled:s.admin_enabled!==false,ownerActive:s.owner_active!==false,activeFrom:s.active_from,activeUntil:s.active_until};
+  const features=[...(s.space_features||[]).map(x=>x.feature)].filter(Boolean).sort((a,b)=>String(a).localeCompare(String(b),'es',{sensitivity:'base'}));
+  const capacity=Number.isFinite(Number(s.capacity))&&Number(s.capacity)>0?Number(s.capacity):extractCapacity(features);
+  return {id:s.id,name:s.name,city:s.city,province:s.province,address:s.address||'',latitude:s.latitude,longitude:s.longitude,image:mainImage,gallery:images.filter((url,i)=>url!==mainImage||i!==0),description:s.description||'',priceWeekday:s.weekday_price,priceTuesday:s.tuesday_price,priceWednesday:s.wednesday_price,priceThursday:s.thursday_price,priceFriday:s.friday_price,priceSaturday:s.saturday_price,priceSunday:s.sunday_price,dayPrices:s.day_prices||{},holidayPrice:Number(s.holiday_price||0),holidays:s.holidays||{},deposit:s.deposit,hours:formatHours(s.opening_time,s.closing_time),features,capacity,services:[...(s.space_services||[])].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'})),cleaningAvailable:!!s.cleaning_available,cleaningPrice:s.cleaning_price||0,cancellationPolicy:s.cancellation_policy||'',conditions:s.conditions_text||s.cancellation_policy||'',active:s.active,adminEnabled:s.admin_enabled!==false,ownerActive:s.owner_active!==false,activeFrom:s.active_from,activeUntil:s.active_until};
 }
 function formatHours(open,close){return open&&close?`${String(open).slice(0,5)}–${String(close).slice(0,5)}`:'Consultar horario';}
 function footer(){return `<footer><div class="container footer-inner"><div class="footer-brand-block"><div class="footer-brand"><img class="footer-logo" src="assets/logo-miespacio-oficial.png" alt="MiEspacio Para Celebrar"><strong>MiEspacioParaCelebrar</strong></div><p>Admin: <a href="mailto:${ADMIN_EMAIL}">${ADMIN_EMAIL}</a></p></div></div></footer>`;}
