@@ -110,3 +110,30 @@ body.pm-app main{min-height:42vh}
 .booking-card .calendar-legend{display:flex!important;justify-content:center!important;gap:14px!important;margin-top:11px!important;padding-top:10px!important;border-top:1px solid #eeeae2!important;font-size:10px!important;color:#7c827b!important}
 .booking-card .legend-dot{display:inline-block!important;width:7px!important;height:7px!important;border-radius:50%!important;margin-right:5px!important}
 .booking-card .legend-dot.confirmed{background:#9a514a!important}.booking-card .legend-dot.pending{background:#b49a69!important}
+
+
+/* V4 — logotipo oficial sin fondo blanco en ninguna interfaz */
+.brand-logo,
+.brand-hero-logo,
+.footer-logo,
+.pm-footer-logo,
+.admin-sidebar-brand img {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+.pm-footer-logo {
+  display: block !important;
+  width: 155px !important;
+  height: auto !important;
+  max-height: 76px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  margin: 0 0 15px !important;
+}
+.admin-sidebar-brand img {
+  width: 58px !important;
+  height: auto !important;
+  max-height: 42px !important;
+  object-fit: contain !important;
+}

@@ -761,3 +761,15 @@ body:has(#privateArea) .site-header .nav>nav a[hidden]{display:none!important}
   .photo-actions{grid-template-columns:1fr 1fr!important}
 }
 
+
+
+/* V4 — logotipo oficial: conservar transparencia del PNG en toda la web */
+.brand-logo,
+.brand-hero-logo,
+.footer-logo,
+.pm-footer-logo,
+.admin-sidebar-brand img {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
