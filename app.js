@@ -87,7 +87,7 @@ function extractCapacity(features){
 function normalizeSpace(s){
   const imageRows=(s.space_images||[]).filter(x=>x&&x.image_url).sort((a,b)=>(Number(b.is_main===true)-Number(a.is_main===true))||((a.sort_order??0)-(b.sort_order??0)));
   const images=imageRows.map(x=>x.image_url).filter(Boolean);
-  const mainImage=(imageRows.find(x=>x.is_main===true)?.image_url)||images[0]||FALLBACK_SPACES[0].image;
+  const mainImage=(imageRows.find(x=>x.is_main===true)?.image_url)||images[0]||'';
   const features=[...(s.space_features||[]).map(x=>x.feature)].filter(Boolean).sort((a,b)=>String(a).localeCompare(String(b),'es',{sensitivity:'base'}));
   const capacity=Number.isFinite(Number(s.capacity))&&Number(s.capacity)>0?Number(s.capacity):extractCapacity(features);
   return {id:s.id,name:s.name,city:s.city,province:s.province,address:s.address||'',latitude:s.latitude,longitude:s.longitude,image:mainImage,gallery:images.filter((url,i)=>url!==mainImage||i!==0),description:s.description||'',priceWeekday:s.weekday_price,priceTuesday:s.tuesday_price,priceWednesday:s.wednesday_price,priceThursday:s.thursday_price,priceFriday:s.friday_price,priceSaturday:s.saturday_price,priceSunday:s.sunday_price,dayPrices:s.day_prices||{},holidayPrice:Number(s.holiday_price||0),holidays:s.holidays||{},deposit:s.deposit,hours:formatHours(s.opening_time,s.closing_time),features,capacity,services:[...(s.space_services||[])].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'})),cleaningAvailable:!!s.cleaning_available,cleaningPrice:s.cleaning_price||0,cancellationPolicy:s.cancellation_policy||'',conditions:s.conditions_text||s.cancellation_policy||'',active:s.active,adminEnabled:s.admin_enabled!==false,ownerActive:s.owner_active!==false,activeFrom:s.active_from,activeUntil:s.active_until};
@@ -106,7 +106,8 @@ async function initMap(id,spaces,single=false){
   const resolved=[];for(const s of spaces)resolved.push(await geocodeSpace(s));
   const points=resolved.filter(s=>Number.isFinite(Number(s.latitude))&&Number.isFinite(Number(s.longitude)));
   if(!points.length){el.innerHTML='<div class="map-empty">La ubicación exacta todavía no está configurada. El administrador puede introducir la dirección y localizar el espacio desde su área privada.</div>';return;}
-  const map=L.map(el,{scrollWheelZoom:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);const bounds=[];
+  if(el.__leafletMap){try{el.__leafletMap.remove();}catch(_){ }el.__leafletMap=null;el.innerHTML='';}
+  const map=L.map(el,{scrollWheelZoom:false});el.__leafletMap=map;L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);const bounds=[];
   points.forEach(s=>{const p=[Number(s.latitude),Number(s.longitude)];bounds.push(p);const destination=encodeURIComponent(`${s.latitude},${s.longitude}`);const publicLink=single?'':`<br><a href="espacio.html?id=${encodeURIComponent(s.id)}">Ver espacio</a>`;const routes=`<div class="map-popup-actions"><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${destination}">Cómo llegar</a><a target="_blank" rel="noopener" href="https://maps.apple.com/?daddr=${destination}">Apple Maps</a></div>`;L.marker(p).addTo(map).bindPopup(`<strong>${esc(s.name)}</strong><br>${esc(s.city)}${single?'':' · '+esc(s.province)}${publicLink}${routes}`);});
   if(single)map.setView(bounds[0],17);else map.fitBounds(bounds,{padding:[35,35],maxZoom:16});setTimeout(()=>map.invalidateSize(),150);
 }
