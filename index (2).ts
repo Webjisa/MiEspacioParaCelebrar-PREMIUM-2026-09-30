@@ -1,3 +1,3 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const c=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-Deno.serve(async()=>{const {data,error}=await c.rpc('expire_pending_bookings');if(error)return new Response(JSON.stringify({error:error.message}),{status:500});return new Response(JSON.stringify({expired:data||0}),{headers:{'Content-Type':'application/json'}})});
+Deno.serve(async()=>{const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);const {data:bookings,error}=await c.from('bookings').select('id').eq('booking_status','confirmed').eq('end_date',yesterday);if(error)return new Response(JSON.stringify({error:error.message}),{status:500});let sent=0;for(const b of bookings||[]){const {data}=await c.rpc('create_survey_for_booking',{p_booking_id:b.id});if(data)sent++;}return new Response(JSON.stringify({sent}),{headers:{'Content-Type':'application/json'}})});

@@ -26,3 +26,87 @@ body[data-page="admin"] .site-header,body[data-page="owner"] .site-header,body:h
 .pm-calendar-icon svg,.pm-field-icon svg{width:18px;height:18px;fill:none;stroke:#2b352e;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.pm-calendar-icon{transform:none}.pm-date-field .pm-field-icon{display:flex;align-items:center;justify-content:center}
 .pm-card-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px}.pm-compare-mini{border:1px solid #dfdcd3;background:#f7f6f1;color:#2b322d;border-radius:999px;padding:8px 12px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}.pm-compare-mini:hover{background:#ecece4}
 .pm-people-popover{position:absolute;right:0;top:calc(100% + 8px);z-index:120;width:240px;background:#fff;border:1px solid #e3e0d8;border-radius:18px;padding:15px;box-shadow:0 20px 50px rgba(25,30,27,.16)}.pm-people-popover strong{display:block;font-size:12px;margin-bottom:10px}.pm-people-options{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pm-people-options button{height:34px;border:1px solid #e2dfd7;border-radius:10px;background:#faf9f5;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer}.pm-people-options button:hover{background:#e9ece4}.pm-people-popover label{display:block;margin-top:11px;font-size:10px;color:#777d76}.pm-people-popover input{width:100%;height:38px;margin-top:5px;border:1px solid #e2dfd7;border-radius:10px;padding:0 9px;font-family:inherit}
+
+/* =========================================================
+   PREMIUM V3 · CONSOLIDACIÓN GLOBAL
+   Un único sistema visual para cabecera, footer y páginas.
+========================================================= */
+body.pm-app{min-height:100vh;background:var(--pm-bg,#fbfaf7);color:var(--pm-ink,#202622)}
+body.pm-app main{min-height:42vh}
+.site-header.pm-header{width:100%;height:82px!important;background:rgba(255,255,255,.96)!important;border-bottom:1px solid rgba(30,35,31,.07)!important;box-shadow:0 5px 22px rgba(20,25,22,.035)!important;backdrop-filter:blur(16px);position:relative;z-index:1000}
+.pm-header .container.nav{height:82px!important;max-width:1220px;padding:0 24px!important;margin:0 auto;display:flex;align-items:center;gap:28px}
+.pm-header .brand{display:flex!important;align-items:center!important;text-decoration:none!important;flex:0 0 auto!important;min-width:0}
+.pm-header .brand-logo{display:block!important;width:158px!important;height:66px!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:left center!important}
+.pm-header .pm-nav{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:28px!important;margin-left:auto!important;flex:0 0 auto!important}
+.pm-header .pm-nav a,.pm-header .pm-header-logout{font-family:var(--pm-font)!important;font-size:13px!important;font-weight:600!important;color:#202622!important;text-decoration:none!important;white-space:nowrap!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:12px 2px!important;min-height:auto!important;border-radius:0!important;cursor:pointer;position:relative}
+.pm-header .pm-nav a::after{content:"";position:absolute;left:0;right:0;bottom:5px;height:1px;background:#202622;transform:scaleX(0);transition:transform .2s ease}
+.pm-header .pm-nav a:hover::after,.pm-header .pm-nav a:focus-visible::after,.pm-header .pm-nav a.active::after{transform:scaleX(.75)}
+.pm-header .pm-nav .pm-private-link{padding:14px 22px!important;background:#111512!important;color:#fff!important;border-radius:999px!important;box-shadow:0 10px 24px rgba(15,19,17,.16)!important}
+.pm-header .pm-nav .pm-private-link::after{display:none!important}
+.pm-header .pm-nav .pm-private-link:hover{background:#1c231f!important;transform:translateY(-1px)}
+.pm-header .pm-header-logout{padding:12px 18px!important;border:1px solid #dedbd2!important;border-radius:999px!important;background:#fff!important}
+.pm-header .pm-header-logout:hover{background:#f3f2ec!important}
+.pm-menu-toggle{display:none!important;width:42px!important;height:42px!important;margin-left:10px!important;border:0!important;background:transparent!important;border-radius:50%!important;padding:9px!important;cursor:pointer!important}
+.pm-menu-toggle:hover{background:#f0efe9!important}
+.pm-menu-toggle span{display:block!important;height:1.5px!important;background:#202622!important;margin:5px 1px!important;border-radius:10px!important}
+
+.pm-footer{background:#111512!important;color:#fff!important;padding:62px 0 22px!important;margin-top:0!important;border:0!important}
+.pm-footer-grid{max-width:1220px!important;display:grid!important;grid-template-columns:minmax(240px,1.55fr) repeat(3,minmax(130px,1fr))!important;gap:44px!important;align-items:start!important}
+.pm-footer-brand{min-width:0!important}
+.pm-footer-logo{display:block!important;width:155px!important;height:76px!important;object-fit:contain!important;object-position:left center!important;background:#fff!important;border-radius:18px!important;padding:7px!important;margin:0 0 15px!important}
+.pm-footer-brand p{max-width:350px!important;margin:0 0 12px!important;color:#b9c0b9!important;font-size:13px!important;line-height:1.65!important}
+.pm-footer-email{font-size:12px!important;color:#e8ebe7!important;text-decoration:none!important}
+.pm-footer-email:hover{text-decoration:underline!important;text-underline-offset:4px}
+.pm-footer-column{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:10px!important;min-width:0!important}
+.pm-footer-column strong{font-size:10px!important;line-height:1.2!important;letter-spacing:.17em!important;text-transform:uppercase!important;color:#fff!important;margin:0 0 7px!important}
+.pm-footer-column a{font-size:12px!important;line-height:1.45!important;color:#b9c0b9!important;text-decoration:none!important;white-space:normal!important}
+.pm-footer-column a:hover{color:#fff!important;text-decoration:underline!important;text-underline-offset:4px}
+.pm-footer-bottom{max-width:1220px!important;border-top:1px solid rgba(255,255,255,.12)!important;margin-top:42px!important;padding-top:17px!important;display:flex!important;justify-content:space-between!important;gap:20px!important;color:#89918a!important;font-size:11px!important}
+
+.pm-error-page{max-width:900px;margin:0 auto;padding:110px 24px 130px;text-align:center}
+.pm-error-mark{font-family:var(--pm-display)!important;font-size:clamp(90px,18vw,190px);line-height:.8;letter-spacing:-.08em;color:#e4e3dc;margin-bottom:34px}
+.pm-error-page h1{font-family:var(--pm-display)!important;font-size:clamp(42px,6vw,72px);line-height:.98;letter-spacing:-.055em;margin:10px auto 16px;max-width:780px}
+.pm-error-page p{max-width:580px;margin:0 auto;color:#70766f;line-height:1.7}
+.pm-error-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:30px}
+
+@media(max-width:760px){
+ .site-header.pm-header,.pm-header .container.nav{height:70px!important}
+ .pm-header .container.nav{padding:0 16px!important}
+ .pm-header .brand-logo{width:128px!important;height:58px!important}
+ .pm-header .pm-nav{display:none!important;position:absolute;left:12px;right:12px;top:66px;padding:9px!important;background:#fff!important;border:1px solid #e4e1d8!important;border-radius:20px!important;box-shadow:0 20px 45px rgba(25,30,27,.14)!important;flex-direction:column!important;align-items:stretch!important;gap:2px!important}
+ .pm-header .pm-nav.pm-nav-open{display:flex!important}
+ .pm-header .pm-nav a,.pm-header .pm-header-logout{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:46px!important;padding:12px 14px!important;border-radius:14px!important}
+ .pm-header .pm-nav a::after{display:none!important}
+ .pm-header .pm-nav .pm-private-link{margin-top:3px!important}
+ .pm-menu-toggle{display:block!important}
+ .pm-footer{padding:48px 0 20px!important}
+ .pm-footer-grid{grid-template-columns:1fr 1fr!important;gap:34px 26px!important}
+ .pm-footer-brand{grid-column:1/-1!important}
+ .pm-footer-bottom{margin-top:32px!important;flex-direction:column!important;gap:7px!important}
+}
+@media(max-width:430px){
+ .pm-header .brand-logo{width:118px!important;height:54px!important}
+ .pm-footer-grid{grid-template-columns:1fr!important;gap:27px!important}
+ .pm-footer-brand{grid-column:auto!important}
+ .pm-error-page{padding-top:85px;padding-bottom:90px}
+}
+
+/* Calendario de reserva existente: mismo lenguaje visual que el selector Premium */
+.booking-card .booking-calendar{position:absolute!important;z-index:120!important;width:min(370px,calc(100% - 20px))!important;margin:0!important;padding:14px!important;background:#fff!important;border:1px solid #e2dfd7!important;border-radius:20px!important;box-shadow:0 25px 60px rgba(20,25,22,.18)!important;overflow:hidden!important}
+.booking-card .calendar-head{display:grid!important;grid-template-columns:34px 1fr 34px!important;align-items:center!important;text-align:center!important;margin-bottom:10px!important}
+.booking-card .calendar-nav{width:32px!important;height:32px!important;border:0!important;border-radius:50%!important;background:#f3f2ec!important;color:#202622!important;font-size:20px!important;cursor:pointer!important}
+.booking-card .calendar-head strong{font-size:13px!important;font-weight:800!important;color:#202622!important;text-transform:capitalize!important}
+.booking-card .calendar-weekdays,.booking-card .calendar-grid{display:grid!important;grid-template-columns:repeat(7,1fr)!important;gap:4px!important}
+.booking-card .calendar-weekdays span{text-align:center!important;font-size:10px!important;color:#888c86!important;font-weight:800!important;padding:5px 0!important}
+.booking-card .calendar-day{height:36px!important;border:0!important;border-radius:10px!important;background:#fff!important;color:#202622!important;font-family:inherit!important;font-size:12px!important;cursor:pointer!important}
+.booking-card .calendar-day:hover:not(:disabled){background:#edf0e9!important}
+.booking-card .calendar-day.selected{background:#111512!important;color:#fff!important}
+.booking-card .calendar-day.selected-start,.booking-card .calendar-day.selected-end{background:#111512!important;color:#fff!important}
+.booking-card .calendar-day.unavailable-confirmed{background:#f1dfdc!important;color:#9a514a!important;text-decoration:line-through!important;cursor:not-allowed!important}
+.booking-card .calendar-day.unavailable-pending{background:#eeeae1!important;color:#817a69!important;cursor:not-allowed!important}
+.booking-card .calendar-day.outside{color:#c8c8c1!important;background:transparent!important}
+.booking-card .calendar-day.today{box-shadow:inset 0 0 0 1px #b49a69!important}
+.booking-card .calendar-day.holiday:not(.selected){box-shadow:inset 0 -2px 0 #b49a69!important}
+.booking-card .calendar-legend{display:flex!important;justify-content:center!important;gap:14px!important;margin-top:11px!important;padding-top:10px!important;border-top:1px solid #eeeae2!important;font-size:10px!important;color:#7c827b!important}
+.booking-card .legend-dot{display:inline-block!important;width:7px!important;height:7px!important;border-radius:50%!important;margin-right:5px!important}
+.booking-card .legend-dot.confirmed{background:#9a514a!important}.booking-card .legend-dot.pending{background:#b49a69!important}
