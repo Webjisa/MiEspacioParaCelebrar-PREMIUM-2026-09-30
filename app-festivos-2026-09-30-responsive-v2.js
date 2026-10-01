@@ -78,13 +78,30 @@ async function geocodeSpace(s){
   try{const url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=es&q='+encodeURIComponent(address);const r=await fetch(url,{headers:{Accept:'application/json'}});if(!r.ok)return s;const data=await r.json();if(!data.length)return s;const result={lat:data[0].lat,lon:data[0].lon};try{sessionStorage.setItem(key,JSON.stringify(result));}catch(_){ }return {...s,latitude:Number(result.lat),longitude:Number(result.lon)};}catch(error){console.warn('No se pudo geolocalizar',address,error);return s;}
 }
 async function initMap(id,spaces,single=false){
-  const el=document.getElementById(id);if(!el||!window.L)return;el.innerHTML='<div class="map-loading">Cargando ubicación…</div>';
-  const resolved=[];for(const s of spaces)resolved.push(await geocodeSpace(s));
+  const el=document.getElementById(id);if(!el||!window.L)return;
+  el.innerHTML='<div class="map-loading">Cargando ubicación…</div>';
+  const resolved=[];for(const s of spaces||[])resolved.push(await geocodeSpace(s));
   const points=resolved.filter(s=>Number.isFinite(Number(s.latitude))&&Number.isFinite(Number(s.longitude)));
   if(!points.length){el.innerHTML='<div class="map-empty">La ubicación exacta todavía no está configurada. El administrador puede introducir la dirección y localizar el espacio desde su área privada.</div>';return;}
-  const map=L.map(el,{scrollWheelZoom:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);const bounds=[];
-  points.forEach(s=>{const p=[Number(s.latitude),Number(s.longitude)];bounds.push(p);L.marker(p).addTo(map).bindPopup(`<strong>${esc(s.name)}</strong><br>${esc(s.city)}${single?'':' · '+esc(s.province)}${single?'':'<br><a href="espacio.html?id='+encodeURIComponent(s.id)+'">Ver espacio</a>'}`);});
-  if(single)map.setView(bounds[0],17);else map.fitBounds(bounds,{padding:[35,35],maxZoom:16});setTimeout(()=>map.invalidateSize(),150);
+  if(el.__leafletMap){try{el.__leafletMap.remove();}catch(_){ }el.__leafletMap=null;el.innerHTML='';}
+  const map=L.map(el,{scrollWheelZoom:false,zoomControl:true,attributionControl:true});
+  el.__leafletMap=map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+  L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+  const bounds=[];
+  const pinIcon=L.divIcon({className:'mep-map-pin-wrap',html:'<span class="mep-map-pin"><i></i></span>',iconSize:[34,42],iconAnchor:[17,40],popupAnchor:[0,-35]});
+  points.forEach(s=>{
+    const p=[Number(s.latitude),Number(s.longitude)];bounds.push(p);
+    const destination=encodeURIComponent(`${s.latitude},${s.longitude}`);
+    const image=s.image||'';
+    const thumb=image?`<div class="mep-map-popup-thumb"><img src="${esc(image)}" alt="${esc(s.name)}"></div>`:'<div class="mep-map-popup-thumb mep-map-popup-thumb-empty" aria-hidden="true"></div>';
+    const publicLink=single?'':`<a class="mep-map-popup-link" href="espacio.html?id=${encodeURIComponent(s.id)}">Ver espacio <span>→</span></a>`;
+    const routes=`<a class="mep-map-popup-route" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${destination}">Cómo llegar <span>↗</span></a>`;
+    const popup=`<div class="mep-map-popup"><div class="mep-map-popup-head">${thumb}<div class="mep-map-popup-title"><strong>${esc(s.name)}</strong><span>${esc(s.city||'')}${s.province&&!single?' · '+esc(s.province):''}</span></div></div><div class="mep-map-popup-actions">${publicLink}${routes}</div></div>`;
+    L.marker(p,{icon:pinIcon,title:s.name,alt:s.name}).addTo(map).bindPopup(popup,{maxWidth:310,minWidth:250,closeButton:true,autoPan:true,className:'mep-map-popup-container'});
+  });
+  if(single)map.setView(bounds[0],17);else map.fitBounds(bounds,{padding:[42,42],maxZoom:16});
+  setTimeout(()=>map.invalidateSize(),150);
 }
 
 function priceForDate(s,date){if(!date)return null;if(s.holidays&&Object.prototype.hasOwnProperty.call(s.holidays,date))return Number(s.holidayPrice||0);const d=new Date(`${date}T12:00:00`),isoDay=d.getDay()===0?7:d.getDay();if(s.dayPrices&&Object.prototype.hasOwnProperty.call(s.dayPrices,isoDay))return Number(s.dayPrices[isoDay]||0);if(isoDay===1)return s.priceWeekday;if(isoDay===2)return s.priceTuesday??s.priceWeekday;if(isoDay===3)return s.priceWednesday??s.priceWeekday;if(isoDay===4)return s.priceThursday??s.priceWeekday;if(isoDay===5)return s.priceFriday;if(isoDay===6)return s.priceSaturday;return s.priceSunday;}

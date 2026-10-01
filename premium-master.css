@@ -198,3 +198,35 @@ body.pm-app main{min-height:42vh}
 .field-help {display:block;color:#747a73;font-size:11px;font-weight:400;line-height:1.4;margin-top:4px}
 
 .pm-spaces-map-section{margin-top:42px;padding-top:36px;border-top:1px solid var(--pm-line)}.pm-spaces-map-section .pm-section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:20px}.pm-spaces-map-section .pm-section-head h2{margin:7px 0 0}.pm-spaces-map-section .pm-section-head p{margin:0;max-width:520px;text-align:right;color:var(--pm-muted)}.pm-spaces-map{height:430px;border-radius:28px;overflow:hidden;border:1px solid var(--pm-line);background:#f7f7f4}.pm-spaces-map .leaflet-popup-content-wrapper{border-radius:14px}.pm-spaces-map .leaflet-popup-content{font-family:inherit;line-height:1.5}.pm-spaces-map .leaflet-popup-content a{color:var(--pm-ink);font-weight:700}@media(max-width:700px){.pm-spaces-map-section{margin-top:30px;padding-top:28px}.pm-spaces-map-section .pm-section-head{display:block}.pm-spaces-map-section .pm-section-head p{text-align:left;margin-top:8px}.pm-spaces-map{height:330px;border-radius:20px}}
+
+/* V10 · Mapas premium: marcadores, popups y navegación */
+.pm-spaces-map,.pm-route-panel .pm-map,.map{background:#eef0eb!important;box-shadow:0 18px 45px rgba(24,30,26,.10);border:1px solid #dedfd7!important}
+.mep-map-pin-wrap{background:transparent!important;border:0!important}
+.mep-map-pin{display:block;position:relative;width:34px;height:34px;border-radius:50% 50% 50% 0;background:#102c24;border:3px solid #fff;box-shadow:0 7px 18px rgba(16,44,36,.30);transform:rotate(-45deg)}
+.mep-map-pin::after{content:"";position:absolute;inset:7px;border-radius:50%;background:#d9c18a}
+.mep-map-pin i{position:absolute;inset:12px;border-radius:50%;background:#fff;z-index:2}
+.leaflet-container .leaflet-control-zoom{border:0!important;box-shadow:0 8px 24px rgba(24,30,26,.13)!important;border-radius:12px!important;overflow:hidden}
+.leaflet-container .leaflet-control-zoom a{width:34px!important;height:34px!important;line-height:34px!important;border:0!important;color:#102c24!important;background:#fff!important;font-weight:700}
+.leaflet-container .leaflet-control-zoom a+a{border-top:1px solid #ecece6!important}
+.leaflet-control-attribution{background:rgba(255,255,255,.88)!important;border-radius:7px 0 0 0!important;padding:3px 7px!important}
+.mep-map-popup-container .leaflet-popup-content-wrapper{padding:0!important;border-radius:18px!important;overflow:hidden;box-shadow:0 18px 45px rgba(24,30,26,.18)!important;border:1px solid #e4e2da!important;background:#fff!important}
+.mep-map-popup-container .leaflet-popup-content{margin:0!important;width:270px!important;font-family:var(--pm-font,Arial,sans-serif)!important;color:#18201b!important}
+.mep-map-popup-container .leaflet-popup-tip{background:#fff!important;box-shadow:2px 2px 5px rgba(24,30,26,.06)}
+.mep-map-popup-container .leaflet-popup-close-button{z-index:5!important;right:9px!important;top:8px!important;width:30px!important;height:30px!important;border-radius:50%!important;background:rgba(255,255,255,.94)!important;color:#18201b!important;font-size:19px!important;line-height:29px!important;text-align:center!important;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.mep-map-popup{overflow:hidden}
+.mep-map-popup-head{display:grid;grid-template-columns:78px 1fr;gap:13px;align-items:center;padding:12px 12px 11px}
+.mep-map-popup-thumb{width:78px;height:68px;border-radius:11px;overflow:hidden;background:#ecece7}
+.mep-map-popup-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.mep-map-popup-thumb-empty{background:linear-gradient(135deg,#eff0ea,#e4e5df)}
+.mep-map-popup-title{min-width:0;padding-right:20px}
+.mep-map-popup-title strong{display:block;font-family:var(--pm-display,Georgia,serif);font-size:18px;line-height:1.05;margin-bottom:5px}
+.mep-map-popup-title span{display:block;font-size:11px;color:#727970;line-height:1.35}
+.mep-map-popup-actions{display:flex;align-items:center;gap:8px;border-top:1px solid #ecebe5;padding:10px 12px 12px}
+.mep-map-popup-actions a{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:7px 11px;border-radius:999px;text-decoration:none!important;font-size:11px;font-weight:800;line-height:1;color:#102c24!important;white-space:nowrap}
+.mep-map-popup-link{background:#f0f1ec;border:1px solid #e1e3dc}
+.mep-map-popup-route{background:#102c24;color:#fff!important;border:1px solid #102c24}
+.mep-map-popup-route span,.mep-map-popup-link span{font-size:13px}
+.premium-route-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start}
+.premium-route-actions .pm-btn{display:inline-flex;align-items:center;gap:7px}
+.map-loading,.map-empty{display:flex;align-items:center;justify-content:center;min-height:100%;padding:30px;text-align:center;color:#6d746d;background:linear-gradient(135deg,#f5f5f1,#eceee8);font-size:13px}
+@media(max-width:700px){.mep-map-popup-container .leaflet-popup-content{width:250px!important}.mep-map-popup-head{grid-template-columns:70px 1fr}.mep-map-popup-thumb{width:70px;height:62px}.mep-map-popup-actions{gap:6px}.mep-map-popup-actions a{flex:1;padding-left:8px;padding-right:8px}.pm-spaces-map,.pm-route-panel .pm-map,.map{box-shadow:0 12px 28px rgba(24,30,26,.08)}}
