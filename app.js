@@ -254,9 +254,10 @@ function renderBookingCalendar(state){
     if(dateInRange(iso,start,end))classes.push('selected');
     if(start&&iso===start)classes.push('selected-start');
     if(end&&iso===end)classes.push('selected-end');
+    if(state.minDate&&iso<state.minDate)classes.push('is-past');
     if(iso===localISODate())classes.push('today');
-    const holiday=state.space.holidays?.[iso]; if(holiday)classes.push('holiday');
-    cells+=`<button type="button" class="${classes.join(' ')}" data-date="${iso}" title="${holiday?esc(holiday.name||'Festivo local'):''}" ${disabled?'disabled':''}>${d}</button>`;
+    const holiday=state.space.holidays?.[iso];
+    cells+=`<button type="button" class="${classes.join(' ')}" data-date="${iso}" title="${disabled&&holiday?esc(holiday.name||'Fecha no disponible'):''}" ${disabled?'disabled':''}>${d}</button>`;
   }
   const trailing=(7-((startWeek+daysInMonth)%7))%7;
   for(let i=1;i<=trailing;i++){const nm=month===12?1:month+1,ny=month===12?year+1:year;cells+=`<button type="button" class="calendar-day outside" data-date="${isoFromParts(ny,nm,i)}" disabled>${i}</button>`;}
