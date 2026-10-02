@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Restablecer contraseña · MiEspacioParaCelebrar</title>
-<link rel="stylesheet" href="styles.css?v=20260928-2">
+<link rel="stylesheet" href="styles.css?v=20261002-V11-CORRECCIONES">
 <script src="supabase-config.js?v=final"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-<link rel="stylesheet" href="premium-master.css?v=20261002-V11-PREMIUM"></head>
+<link rel="stylesheet" href="premium-master.css?v=20261001-V8-PREMIUM"></head>
 <body>
 <header class="site-header"><div class="container nav"><a class="brand" href="index.html" aria-label="MiEspacioParaCelebrar"><img class="brand-logo" src="logo-miespacio-oficial.png" alt="MiEspacio Para Celebrar"></a><nav><a href="espacios.html">Espacios</a><a href="como-funciona.html">Cómo funciona</a><a href="disponibilidad.html">Consultar disponibilidad</a><a href="acceso.html">Área privada</a></nav></div></header>
 <main>
@@ -28,5 +28,5 @@
  pass.addEventListener('submit',async e=>{e.preventDefault();const msg=document.querySelector('#passwordMessage');const p=document.querySelector('#newPassword').value,p2=document.querySelector('#newPassword2').value;msg.classList.remove('error');if(p.length<6){msg.textContent='La contraseña debe tener al menos 6 caracteres.';msg.classList.add('error');return;}if(p!==p2){msg.textContent='Las contraseñas no coinciden.';msg.classList.add('error');return;}msg.textContent='Guardando…';const {error}=await c.auth.updateUser({password:p});if(error){msg.textContent=error.message;msg.classList.add('error');return;}msg.textContent='Contraseña actualizada. Accediendo…';setTimeout(()=>location.href='area-privada.html',500);});
 })();
 </script>
-<script src="premium-master.js?v=20261002-V11-PREMIUM"></script></body>
+<script src="premium-master.js?v=20261001-V8-PREMIUM"></script></body>
 </html>

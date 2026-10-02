@@ -419,32 +419,35 @@
     root.innerHTML=header('EMAILS','Historial de comunicaciones',`<select id="emailCat"><option value="">Todos</option><option value="espacios">Espacios</option><option value="reservas">Reservas</option><option value="encuestas">Encuestas</option></select>`)+`<div class="admin-card"><div id="emailRows"><p class="muted">Cargando…</p></div></div>`;
     const paint=async()=>{const r=await state.client.rpc('admin_get_email_history',{p_category:root.querySelector('#emailCat').value||null});if(r.error){root.querySelector('#emailRows').innerHTML=`<p class="message error">${esc(r.error.message)}</p>`;return;}root.querySelector('#emailRows').innerHTML=`<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Fecha</th><th>Categoría</th><th>Tipo</th><th>Destinatario</th><th>Estado</th><th>Intentos</th><th>Error</th></tr></thead><tbody>${(r.data||[]).map(x=>`<tr><td>${esc(new Date(x.created_at).toLocaleString('es-ES'))}</td><td>${esc(emailCategoryLabel(x.category))}</td><td>${esc(communicationTypeLabel(x.communication_type))}</td><td>${esc(x.recipient_email)}</td><td>${esc(emailStatusLabel(x.status))}</td><td>${x.attempts}</td><td>${esc(x.last_error||'')}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">Sin comunicaciones.</td></tr>'}</tbody></table></div>`;};root.querySelector('#emailCat').onchange=paint;await paint();
   }
-  async function renderSurveys(root){const r=await state.client.rpc('admin_get_surveys');root.innerHTML=header('ENCUESTAS','Respuestas')+`<div class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Espacio</th><th>Cliente</th><th>General</th><th>Instalaciones</th><th>Limpieza</th><th>Equipamiento</th><th>Mantenimiento</th><th>Incidencia</th><th>Comentarios</th></tr></thead><tbody>${r.error?`<tr><td colspan="9" class="message error">${esc(r.error.message)}</td></tr>`:(r.data||[]).map(x=>`<tr><td>${esc(x.space_name)}</td><td>${esc(x.customer_name)}</td><td>${x.overall??'—'}</td><td>${x.facilities??'—'}</td><td>${x.cleaning??'—'}</td><td>${x.equipment??'—'}</td><td>${x.maintenance??'—'}</td><td>${x.breakdown?'Sí':'No'}</td><td>${esc(x.comments||'')}</td></tr>`).join('')||'<tr><td colspan="9" class="muted">Sin encuestas.</td></tr>'}</tbody></table></div></div>`;}
+  async function renderSurveys(root){const r=await state.client.rpc('admin_get_surveys');root.innerHTML=header('ENCUESTAS','Respuestas')+`<div class="admin-card"><div class="admin-table-wrap"><table class="admin-table admin-surveys-table"><thead><tr><th>Espacio</th><th>Cliente</th><th>General</th><th>Instalaciones</th><th>Limpieza</th><th>Equipamiento</th><th>Mantenimiento</th><th>Incidencia</th><th>Comentarios</th></tr></thead><tbody>${r.error?`<tr><td colspan="9" class="message error">${esc(r.error.message)}</td></tr>`:(r.data||[]).map(x=>`<tr><td data-label="Espacio">${esc(x.space_name)}</td><td data-label="Cliente">${esc(x.customer_name)}</td><td data-label="General">${x.overall??'—'}</td><td data-label="Instalaciones">${x.facilities??'—'}</td><td data-label="Limpieza">${x.cleaning??'—'}</td><td data-label="Equipamiento">${x.equipment??'—'}</td><td data-label="Mantenimiento">${x.maintenance??'—'}</td><td data-label="Incidencia">${x.breakdown?'Sí':'No'}</td><td data-label="Comentarios">${esc(x.comments||'')}</td></tr>`).join('')||'<tr><td colspan="9" class="muted">Sin encuestas.</td></tr>'}</tbody></table></div></div>`;}
   function header(kicker,title,action=''){
     return `<div class="admin-view-head"><div><p class="eyebrow">${kicker}</p><h1>${title}</h1></div>${action}</div>`;
   }
 
   function renderDashboard(root){
+    const today=new Date().toISOString().slice(0,10);
     const active=state.spaces.filter(s=>s.active).length;
     const pending=state.bookings.filter(b=>b.booking_status==='pending').length;
-    const confirmed=state.bookings.filter(b=>b.booking_status==='confirmed').length;
+    const confirmed=state.bookings.filter(b=>b.booking_status==='confirmed' && String(b.end_date||'')>=today).length;
+    const finalized=state.bookings.filter(b=>b.booking_status==='confirmed' && String(b.end_date||'')<today).length;
     const owners=state.owners.filter(o=>o.active).length;
-    const upcoming=state.bookings.filter(b=>b.booking_status==='confirmed' && b.end_date>=new Date().toISOString().slice(0,10)).sort((a,b)=>String(a.start_date).localeCompare(String(b.start_date))).slice(0,5);
+    const upcoming=state.bookings.filter(b=>b.booking_status==='confirmed' && String(b.end_date||'')>=today).sort((a,b)=>String(a.start_date).localeCompare(String(b.start_date))).slice(0,5);
     root.innerHTML=header('ADMINISTRACIÓN','Resumen')+`<div class="admin-kpis">
       <article><span>Espacios activos</span><strong>${active}</strong></article>
       <article><span>Propietarios activos</span><strong>${owners}</strong></article>
       <article><span>Solicitudes pendientes</span><strong>${pending}</strong></article>
       <article><span>Reservas confirmadas</span><strong>${confirmed}</strong></article>
+      <article><span>Reservas finalizadas</span><strong>${finalized}</strong></article>
     </div>
     <div class="admin-dashboard-grid">
-      <section class="admin-card"><div class="admin-card-head"><div><p class="eyebrow">ATENCIÓN</p><h2>Solicitudes pendientes</h2></div><button class="btn btn-light" data-go="bookings">Ver reservas</button></div>
+      <section class="admin-card"><div class="admin-card-head"><div><p class="eyebrow">ATENCIÓN</p><h2>Solicitudes pendientes</h2></div><button type="button" class="btn btn-light" data-go="bookings">Ver reservas</button></div>
         ${pending?`<div class="admin-list">${state.bookings.filter(b=>b.booking_status==='pending').slice(0,6).map(b=>`<div class="admin-list-row"><div><strong>${esc(b.space_name)}</strong><span>${esc(b.customer_name)} · ${date(b.start_date)} → ${date(b.end_date)}</span></div><span class="status status-pending">Pendiente</span></div>`).join('')}</div>`:'<p class="muted">No hay solicitudes pendientes.</p>'}
       </section>
       <section class="admin-card"><div class="admin-card-head"><div><p class="eyebrow">PRÓXIMOS EVENTOS</p><h2>Reservas confirmadas</h2></div></div>
         ${upcoming.length?`<div class="admin-list">${upcoming.map(b=>`<div class="admin-list-row"><div><strong>${esc(b.space_name)}</strong><span>${esc(b.customer_name)} · ${date(b.start_date)} → ${date(b.end_date)}</span></div><span class="status status-confirmed">Confirmada</span></div>`).join('')}</div>`:'<p class="muted">No hay próximas reservas.</p>'}
       </section>
     </div>`;
-    root.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>root.querySelector(`[data-view="${b.dataset.go}"]`)?.click());
+    root.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>renderView(b.dataset.go));
   }
 
   function renderSpaces(root){
@@ -860,7 +863,7 @@
   }
 
   function renderOwners(root){
-    root.innerHTML=header('PROPIETARIOS','Propietarios',`<button id="newOwner" class="btn btn-dark">+ Añadir propietario</button>`)+`<div class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Propietario</th><th>Email</th><th>Teléfono</th><th>Espacios</th><th>Estado</th><th></th></tr></thead><tbody>${state.owners.length?state.owners.map(o=>`<tr><td><strong>${esc(`${o.first_name||''} ${o.last_name||''}`.trim()||'Sin nombre')}</strong></td><td>${esc(o.email||'')}</td><td>${esc(o.phone||'—')}</td><td>${state.spaces.filter(s=>s.owner_id===o.id).length}</td><td><span class="status ${o.active?'status-confirmed':'status-off'}">${o.active?'Activo':'Inactivo'}</span></td><td><button class="btn btn-light" data-owner-edit="${o.profile_id}">Editar</button> <button class="btn btn-light owner-resend-btn" data-owner-resend="${o.id}" style="display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:10px 14px;border:1px solid #d9d9d9;border-radius:999px;background:#fff;color:#222;font:inherit;font-weight:600;line-height:1.2;cursor:pointer;">✉️ Enviar recuperación de contraseña</button> <button class="btn btn-light" data-owner-toggle="${o.id}" data-active="${o.active}">${o.active?'Desactivar':'Activar'}</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">No hay propietarios.</td></tr>'}</tbody></table></div></div><p class="admin-message"></p>`;
+    root.innerHTML=header('PROPIETARIOS','Propietarios',`<button id="newOwner" class="btn btn-dark">+ Añadir propietario</button>`)+`<div class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Propietario</th><th>Email</th><th>Teléfono</th><th>Espacios</th><th>Estado</th><th></th></tr></thead><tbody>${state.owners.length?state.owners.map(o=>`<tr><td><strong>${esc(`${o.first_name||''} ${o.last_name||''}`.trim()||'Sin nombre')}</strong></td><td>${esc(o.email||'')}</td><td>${esc(o.phone||'—')}</td><td>${state.spaces.filter(s=>s.owner_id===o.id).length}</td><td><span class="status ${o.active?'status-confirmed':'status-off'}">${o.active?'Activo':'Inactivo'}</span></td><td class="table-actions owner-actions"><button class="btn btn-light" data-owner-edit="${o.profile_id}">Editar</button><button class="btn btn-light owner-resend-btn" data-owner-resend="${o.id}">✉️ Enviar recuperación de contraseña</button><button class="btn btn-light" data-owner-toggle="${o.id}" data-active="${o.active}">${o.active?'Desactivar':'Activar'}</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">No hay propietarios.</td></tr>'}</tbody></table></div></div><p class="admin-message"></p>`;
     root.querySelector('#newOwner').onclick=()=>ownerModal(null);
     root.querySelectorAll('[data-owner-edit]').forEach(b=>b.onclick=()=>ownerModal(state.owners.find(o=>o.profile_id===b.dataset.ownerEdit)));
     root.querySelectorAll('[data-owner-resend]').forEach(b=>b.onclick=()=>resendOwnerInvitation(b.dataset.ownerResend));
@@ -917,34 +920,44 @@
     m.querySelector('[data-close]').onclick=()=>m.remove();m.querySelector('#saveOwner').onclick=async()=>{const q=await state.client.rpc('admin_update_owner_profile',{p_profile_id:o.profile_id,p_first_name:val(m,'#first')||null,p_last_name:val(m,'#last')||null,p_phone:val(m,'#phone')||null,p_address:val(m,'#address')||null,p_city:val(m,'#city')||null,p_postal_code:val(m,'#postal')||null,p_email:val(m,'#email')||null});if(q.error){toast(m,q.error.message,true);return;}m.remove();await refresh();renderView('owners');};
   }
 
+  function getBookingDisplayStatus(b){
+    const status=String(b?.booking_status||'');
+    if(status==='confirmed' && String(b?.end_date||'') < new Date().toISOString().slice(0,10)) return 'finalized';
+    return status;
+  }
+
   function renderBookings(root){
     const rows=[...state.bookings].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
     root.innerHTML=header('RESERVAS','Solicitudes y reservas')+`<div class="admin-filters"><select id="bookingFilter">
       <option value="all">Todos los estados</option>
       <option value="pending">Pendientes</option>
       <option value="confirmed">Confirmadas</option>
-      <option value="rejected">Rechazadas</option>
-      <option value="expired">Caducadas</option>
       <option value="cancelled">Canceladas</option>
+      <option value="rejected">Rechazadas</option>
+      <option value="finalized">Finalizadas</option>
+      <option value="expired">Caducadas</option>
     </select></div><div class="admin-card"><div class="admin-table-wrap"><table class="admin-table">
       <thead><tr><th>Espacio</th><th>Cliente</th><th>Fechas</th><th>Limpieza</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody id="bookingRows"></tbody></table></div></div><p class="admin-message"></p>`;
 
     const paint=()=>{
       const f=root.querySelector('#bookingFilter').value;
-      const filtered=f==='all'?rows:rows.filter(b=>b.booking_status===f);
+      const filtered=f==='all'?rows:rows.filter(b=>getBookingDisplayStatus(b)===f);
       root.querySelector('#bookingRows').innerHTML=filtered.length
-        ? filtered.map(b=>`<tr>
-            <td data-label="Espacio"><strong>${esc(b.space_name)}</strong></td>
-            <td data-label="Cliente"><strong>${esc(b.customer_name)}</strong><span class="table-sub">${esc(b.customer_email)}<br>${esc(b.customer_phone)}</span></td>
-            <td data-label="Fechas">${date(b.start_date)} → ${date(b.end_date)}<span class="table-sub">${b.total_days} día(s)</span></td>
-            <td data-label="Limpieza">${b.cleaning_requested?'Sí':'No'}</td>
-            <td data-label="Estado"><span class="status status-${esc(b.booking_status)}">${labelStatus(b.booking_status)}</span></td>
-            <td data-label="Acciones" class="admin-booking-actions">
-              ${b.booking_status==='pending'?`<button class="btn btn-dark" data-confirm="${b.id}">Aceptar</button><button class="btn btn-light" data-reject="${b.id}">Rechazar</button>`:''}
-              ${b.booking_status==='confirmed'?`<button class="btn btn-light" data-modify="${b.id}">Modificar</button><button class="btn btn-light" data-cancel="${b.id}">Cancelar</button>`:''}
-            </td>
-          </tr>`).join('')
+        ? filtered.map(b=>{
+            const displayStatus=getBookingDisplayStatus(b);
+            return `<tr>
+              <td data-label="Espacio"><strong>${esc(b.space_name)}</strong></td>
+              <td data-label="Cliente"><strong>${esc(b.customer_name)}</strong><span class="table-sub">${esc(b.customer_email)}<br>${esc(b.customer_phone)}</span></td>
+              <td data-label="Fechas">${date(b.start_date)} → ${date(b.end_date)}<span class="table-sub">${b.total_days} día(s)</span></td>
+              <td data-label="Limpieza">${b.cleaning_requested?'Sí':'No'}</td>
+              <td data-label="Estado"><span class="status status-${esc(displayStatus)}">${labelStatus(displayStatus)}</span></td>
+              <td data-label="Acciones" class="admin-booking-actions table-actions">
+                ${displayStatus==='pending'?`<button class="btn btn-dark" data-confirm="${b.id}">Aceptar</button><button class="btn btn-light" data-reject="${b.id}">Rechazar</button>`:''}
+                ${displayStatus==='confirmed'?`<button class="btn btn-light" data-modify="${b.id}">Modificar</button><button class="btn btn-light" data-cancel="${b.id}">Cancelar</button>`:''}
+              </td>
+            </tr>`;
+          }).join('')
         : `<tr><td colspan="6" class="muted">No hay reservas en este estado.</td></tr>`;
 
       root.querySelectorAll('[data-confirm]').forEach(b=>b.onclick=()=>decideBooking(b.dataset.confirm,true));
@@ -1003,11 +1016,11 @@
     await refresh();renderView('bookings');
   }
 
-  const labelStatus=s=>({pending:'Pendiente',confirmed:'Confirmada',rejected:'Rechazada',expired:'Caducada',cancelled:'Cancelada'}[s]||s);
+  const labelStatus=s=>({pending:'PENDIENTE',confirmed:'CONFIRMADA',rejected:'RECHAZADA',expired:'CADUCADA',cancelled:'CANCELADA',finalized:'FINALIZADA'}[s]||String(s||'').toUpperCase());
 
   async function renderCalendar(root){
     root.innerHTML=header('CALENDARIO','Bloqueos de espacios',`<select id="calendarSpace">${state.spaces.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>`)+`<div id="calendarContent"></div>`;
-    const paint=async()=>{const s=state.spaces.find(x=>x.id===root.querySelector('#calendarSpace').value);if(!s){root.querySelector('#calendarContent').innerHTML='<p class="muted">No hay espacios.</p>';return;}const [blocks,books]=await Promise.all([state.client.rpc('admin_get_blocked_dates',{p_space_id:s.id}),state.client.rpc('admin_get_space_bookings',{p_space_id:s.id})]);root.querySelector('#calendarContent').innerHTML=`<div class="calendar-admin-grid"><section class="admin-card"><p class="eyebrow">BLOQUEOS</p><h2>${esc(s.name)}</h2><div class="admin-list">${(blocks.data||[]).map(x=>`<div class="admin-list-row"><div><strong>${date(x.start_date)} → ${date(x.end_date)}</strong><span>${esc(x.reason||'Sin motivo')}</span></div><button class="btn btn-light" data-del-block="${x.id}">Eliminar</button></div>`).join('')||'<p class="muted">Sin bloqueos.</p>'}</div></section><section class="admin-card"><p class="eyebrow">RESERVAS</p><h2>Calendario de ${esc(s.name)}</h2><div class="admin-list">${(books.data||[]).filter(x=>['pending','confirmed'].includes(x.booking_status)).map(x=>`<div class="admin-list-row"><div><strong>${date(x.start_date)} → ${date(x.end_date)}</strong><span>${esc(x.customer_name)} · ${x.cleaning_requested?'Con limpieza':'Sin limpieza'}</span></div><span class="status status-${x.booking_status}">${labelStatus(x.booking_status)}</span></div>`).join('')||'<p class="muted">Sin reservas activas.</p>'}</div></section></div><div class="admin-card block-quick"><h2>Bloquear fechas</h2><div class="block-form"><label>Desde<input id="quickFrom" type="date"></label><label>Hasta<input id="quickUntil" type="date"></label><label>Motivo<input id="quickReason"></label><button id="quickAdd" class="btn btn-dark">Bloquear</button></div><p class="admin-message"></p></div>`;root.querySelectorAll('[data-del-block]').forEach(b=>b.onclick=async()=>{const q=await state.client.rpc('admin_delete_blocked_date',{p_blocked_id:b.dataset.delBlock});if(q.error){toast(root,q.error.message,true);return;}paint();});root.querySelector('#quickAdd').onclick=async()=>{const from=val(root,'#quickFrom'),until=val(root,'#quickUntil');const q=await state.client.rpc('admin_create_blocked_date',{p_space_id:s.id,p_start_date:from,p_end_date:until,p_reason:val(root,'#quickReason')||null});if(q.error){toast(root,q.error.message,true);return;}paint();};};
+    const paint=async()=>{const s=state.spaces.find(x=>x.id===root.querySelector('#calendarSpace').value);if(!s){root.querySelector('#calendarContent').innerHTML='<p class="muted">No hay espacios.</p>';return;}const [blocks,books]=await Promise.all([state.client.rpc('admin_get_blocked_dates',{p_space_id:s.id}),state.client.rpc('admin_get_space_bookings',{p_space_id:s.id})]);root.querySelector('#calendarContent').innerHTML=`<div class="calendar-admin-grid"><section class="admin-card"><p class="eyebrow">BLOQUEOS</p><h2>${esc(s.name)}</h2><div class="admin-list">${(blocks.data||[]).map(x=>`<div class="admin-list-row"><div><strong>${date(x.start_date)} → ${date(x.end_date)}</strong><span>${esc(x.reason||'Sin motivo')}</span></div><button class="btn btn-light" data-del-block="${x.id}">Eliminar</button></div>`).join('')||'<p class="muted">Sin bloqueos.</p>'}</div></section><section class="admin-card"><p class="eyebrow">RESERVAS</p><h2>Calendario de ${esc(s.name)}</h2><div class="admin-list">${(books.data||[]).filter(x=>getBookingDisplayStatus(x)==='pending'||getBookingDisplayStatus(x)==='confirmed').map(x=>`<div class="admin-list-row"><div><strong>${date(x.start_date)} → ${date(x.end_date)}</strong><span>${esc(x.customer_name)} · ${x.cleaning_requested?'Con limpieza':'Sin limpieza'}</span></div><span class="status status-${x.booking_status}">${labelStatus(x.booking_status)}</span></div>`).join('')||'<p class="muted">Sin reservas activas.</p>'}</div></section></div><div class="admin-card block-quick"><h2>Bloquear fechas</h2><div class="block-form"><label>Desde<input id="quickFrom" type="date"></label><label>Hasta<input id="quickUntil" type="date"></label><label>Motivo<input id="quickReason"></label><button id="quickAdd" class="btn btn-dark">Bloquear</button></div><p class="admin-message"></p></div>`;root.querySelectorAll('[data-del-block]').forEach(b=>b.onclick=async()=>{const q=await state.client.rpc('admin_delete_blocked_date',{p_blocked_id:b.dataset.delBlock});if(q.error){toast(root,q.error.message,true);return;}paint();});root.querySelector('#quickAdd').onclick=async()=>{const from=val(root,'#quickFrom'),until=val(root,'#quickUntil');const q=await state.client.rpc('admin_create_blocked_date',{p_space_id:s.id,p_start_date:from,p_end_date:until,p_reason:val(root,'#quickReason')||null});if(q.error){toast(root,q.error.message,true);return;}paint();};};
     root.querySelector('#calendarSpace').onchange=paint;await paint();
   }
 
